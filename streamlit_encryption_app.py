@@ -12,7 +12,7 @@ import tempfile
 
 # Page configuration
 st.set_page_config(
-    page_title="🔐 Secure File Encryptor",
+    page_title="Secure File Encryptor",
     page_icon="🔐",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -167,51 +167,52 @@ def encrypt_files_tab():
     """File encryption interface"""
     st.header("🔒 File Encryption")
     
-    col1, col2 = st.columns([2, 1])
+    # File upload
+    uploaded_files = st.file_uploader(
+        "Choose files to encrypt",
+        accept_multiple_files=True,
+        help="You can upload multiple files of any type (images, documents, videos, etc.)"
+    )
+    
+    if uploaded_files:
+        st.success(f"✅ {len(uploaded_files)} file(s) selected")
+        
+        # Display file information
+        total_size = 0
+        for file in uploaded_files:
+            file_size = len(file.getvalue()) / (1024 * 1024)  # MB
+            total_size += file_size
+            st.markdown(f"📄 **{file.name}** ({file_size:.2f} MB)")
+        
+        st.markdown(f"**Total size:** {total_size:.2f} MB")
+    
+    # Password input section below file upload
+    st.subheader("🔑 Encryption Settings")
+    
+    col1, col2 = st.columns(2)
     
     with col1:
-        # File upload
-        uploaded_files = st.file_uploader(
-            "Choose files to encrypt",
-            accept_multiple_files=True,
-            help="You can upload multiple files of any type (images, documents, videos, etc.)"
-        )
-        
-        if uploaded_files:
-            st.success(f"✅ {len(uploaded_files)} file(s) selected")
-            
-            # Display file information
-            total_size = 0
-            for file in uploaded_files:
-                file_size = len(file.getvalue()) / (1024 * 1024)  # MB
-                total_size += file_size
-                st.markdown(f"📄 **{file.name}** ({file_size:.2f} MB)")
-            
-            st.markdown(f"**Total size:** {total_size:.2f} MB")
-    
-    with col2:
-        # Password input
-        st.subheader("🔑 Encryption Settings")
         password = st.text_input(
             "Encryption Password",
             type="password",
             help="Choose a strong password. You'll need this exact password to decrypt your files."
         )
         
+    with col2:
         password_confirm = st.text_input(
             "Confirm Password",
             type="password"
         )
-        
-        # Password strength indicator
-        if password:
-            strength = check_password_strength(password)
-            if strength == "Strong":
-                st.success("💪 Strong password")
-            elif strength == "Medium":
-                st.warning("⚡ Medium strength password")
-            else:
-                st.error("⚠️ Weak password - consider making it longer")
+    
+    # Password strength indicator
+    if password:
+        strength = check_password_strength(password)
+        if strength == "Strong":
+            st.success("💪 Strong password")
+        elif strength == "Medium":
+            st.warning("⚡ Medium strength password")
+        else:
+            st.error("⚠️ Weak password - consider making it longer")
     
     # Encryption options
     encryption_options = st.expander("⚙️ Advanced Options")
@@ -243,28 +244,24 @@ def decrypt_files_tab():
     """File decryption interface"""
     st.header("🔓 File Decryption")
     
-    col1, col2 = st.columns([2, 1])
+    # File upload for encrypted files
+    encrypted_file = st.file_uploader(
+        "Choose encrypted file",
+        type=['enc', 'encrypted'],
+        help="Select the .enc or .encrypted file you want to decrypt"
+    )
     
-    with col1:
-        # File upload for encrypted files
-        encrypted_file = st.file_uploader(
-            "Choose encrypted file",
-            type=['enc', 'encrypted'],
-            help="Select the .enc or .encrypted file you want to decrypt"
-        )
-        
-        if encrypted_file:
-            file_size = len(encrypted_file.getvalue()) / (1024 * 1024)  # MB
-            st.success(f"✅ Encrypted file selected: {encrypted_file.name} ({file_size:.2f} MB)")
+    if encrypted_file:
+        file_size = len(encrypted_file.getvalue()) / (1024 * 1024)  # MB
+        st.success(f"✅ Encrypted file selected: {encrypted_file.name} ({file_size:.2f} MB)")
     
-    with col2:
-        # Password input
-        st.subheader("🔑 Decryption Settings")
-        decrypt_password = st.text_input(
-            "Decryption Password",
-            type="password",
-            help="Enter the password used to encrypt this file"
-        )
+    # Password input section below file upload
+    st.subheader("🔑 Decryption Settings")
+    decrypt_password = st.text_input(
+        "Decryption Password",
+        type="password",
+        help="Enter the password used to encrypt this file"
+    )
     
     # Decrypt button
     if st.button("🔓 Decrypt File", type="primary", use_container_width=True):
